@@ -60,7 +60,7 @@ class DataSetTest {
 
     @Test
     @DisplayName("Loading file '.csv' test.")
-    void dsFromCSV_imdb() {
+    void dsFromCSV_players() {
         DataSet dataSet = new DataSet();
 
         HashSet<String> filter = new HashSet<>();
@@ -71,14 +71,14 @@ class DataSetTest {
         filter.add("Markey Value In Millions(£)");
 
         try {
-            dataSet.fromCSV(PLAYERS_FILE, ";"/*, filter*/);
+            dataSet.fromCSV(PLAYERS_FILE, ";", filter);
         } catch (IOException e) {
             Assertions.fail(e.getMessage());
         }
 
         System.out.println(dataSet.getLabels());
         for (int i = 0; i < 10; i++) {
-            System.out.println(Arrays.toString(dataSet.getRow(i)));
+            System.out.println(dataSet.getRow(i));
         }
     }
 
