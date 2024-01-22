@@ -71,7 +71,7 @@ class DataSetTest {
         filter.add("Markey Value In Millions(£)");
 
         try {
-            dataSet.fromCSV(PLAYERS_FILE, ";"/*, filter*/);
+            dataSet.fromCSV(PLAYERS_FILE, ";", filter);
         } catch (IOException e) {
             Assertions.fail(e.getMessage());
         }
