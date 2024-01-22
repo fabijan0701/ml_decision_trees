@@ -21,10 +21,10 @@ public class DataSet {
 
     /**
      * Mapa u koju su spremljeni podaci koje struktura sadrži. Ključevi su oznake
-     * (eng. labels), a vrijednosti su liste tipa ArrayList<> koje predstavljaju
+     * (eng. labels), a vrijednosti spremljene u objekte tipa Series koje predstavljaju
      * stupce koji su spremljeni u strukturu.
      * */
-    private final HashMap<String, ArrayList<Object>> map;
+    private final HashMap<String, DataSeries> map;
 
 
     /**
@@ -76,7 +76,7 @@ public class DataSet {
      * Vraća stupac prema željenoj oznaci (label) u obliku strukture
      * tipa 'ArrayList<>'.
      **/
-    public ArrayList<Object> getColumn(String label) {
+    public DataSeries getColumn(String label) {
         return this.map.get(label);
     }
 
@@ -85,15 +85,14 @@ public class DataSet {
      * Vraća željeni redak prema njegovom indeksu. Indeksi se kreću
      * od 0 do N - 1, ako je N broj redaka. Dobiveni rezultat se vraća
      * u obliku polja koje sadrži elemente tipa 'Object'. */
-    public Object[] getRow(int index) {
+    public DataSeries getRow(int index) {
 
-        Object[] row = new Object[this.getShape().columns()];
+        DataSeries row = new DataSeries();
 
         String[] labels = this.getLabels().toArray(new String[0]);
 
-        for (int i = 0; i < labels.length; i++) {
-            String label = labels[i];
-            row[i] = this.map.get(label).get(index);
+        for (String label : labels) {
+            row.add(this.map.get(label).get(index));
         }
 
         return row;
@@ -110,8 +109,8 @@ public class DataSet {
         data.dataTypes = this.dataTypes;
 
         for (String label: map.keySet()) {
-            data.map.put(label, new ArrayList<>());
-            ArrayList<Object> column = this.map.get(label);
+            data.map.put(label, new DataSeries());
+            DataSeries column = this.map.get(label);
             System.out.println(label + "  " + column.size());
         }
 
@@ -162,7 +161,7 @@ public class DataSet {
                 for (int i = 0; i < lineData.length; i++) {
                     String title = lineData[i];
                     if (filterColumns.contains(title)) {
-                        map.put(title, new ArrayList<>());
+                        map.put(title, new DataSeries());
                         validIndices.add(i);
                     }
                 }
@@ -234,7 +233,7 @@ public class DataSet {
             if (lineCounter == 0) {
                 allLabels = lineData;
                 for (String title : lineData) {
-                    map.put(title, new ArrayList<>());
+                    map.put(title, new DataSeries());
                 }
             }
             else if (lineCounter == 1) {
@@ -260,4 +259,6 @@ public class DataSet {
 
         reader.close();
     }
+
+
 }
