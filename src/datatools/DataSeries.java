@@ -253,4 +253,15 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
 
         this.replaceAll(map::get);
     }
+
+    public DataSeries unique() {
+
+        DataSeries unq = new DataSeries(this.label);
+        for (Object o: this) {
+            if (!unq.contains(o)) {
+                unq.add(o);
+            }
+        }
+        return unq;
+    }
 }

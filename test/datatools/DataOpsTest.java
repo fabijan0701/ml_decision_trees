@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,12 +56,27 @@ class DataOpsTest {
         filters.add("Country");
         filters.add("Goals");
         filters.add("Assists");
-        filters.add("Market value");
-
+        filters.add("Market Value");
 
         // Učitavanje podataka.
         DataSet data = new DataSet();
         data.fromCSV(TestFiles.PLAYERS_FILE, ";", filters);
+
+        int codePos = 0;
+        HashMap<Object, Object> positionMapping = new HashMap<>();
+        for (Object value: data.getColumn("Position").unique()) {
+            positionMapping.put(value, codePos);
+            codePos++;
+        }
+        data.getColumn("Position").codeValues(positionMapping);
+
+        int country = 0;
+        HashMap<Object, Object> countryMapping = new HashMap<>();
+        for (Object o: data.getColumn("Country").unique()) {
+            countryMapping.put(o, country);
+            country++;
+        }
+        data.getColumn("Country").codeValues(countryMapping);
 
         System.out.println(DataOps.corrMatrixToStr(data));
     }

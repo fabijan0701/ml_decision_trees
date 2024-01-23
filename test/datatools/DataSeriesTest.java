@@ -146,6 +146,19 @@ class DataSeriesTest {
     }
 
     @Test
+    void uniqueValues() {
+
+        // Actual
+        DataSeries dataSeries = new DataSeries(new Object[]{ 21, 22, 22, 21, 21, 22} );
+
+        // Expected
+        DataSeries expected = new DataSeries(new Object[]{ 21, 22 });
+
+        // Asserts
+        Assertions.assertEquals(expected, dataSeries.unique());
+    }
+
+    @Test
     void codingValues() {
 
         DataSeries ds = new DataSeries(new Object[]{ "Jure", "Mate", "Šime", "Mate", "Jure" });

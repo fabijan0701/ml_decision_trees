@@ -337,7 +337,6 @@ public class DataSet {
         return newDs;
     }
 
-
     /**
      * Returns matrix of correlation for each numerical column.*/
     public double[][] corrMatrix() {
