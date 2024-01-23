@@ -1,5 +1,7 @@
 package datatools;
 
+import com.sun.jdi.Value;
+
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -78,6 +80,43 @@ public class DataSet {
      **/
     public DataSeries getColumn(String label) {
         return this.map.get(label);
+    }
+
+
+    /**
+     * Tries to add new column in form of DataSeries to current DataSet.
+     * Number of elements of this new column has to be same as total number
+     * of rows in DataSet. Method will return if addition failed. Also, label
+     * of the new column must be different from other labels.
+     * */
+    public void addColumn(String label, DataSeries series) {
+
+        if (this.map.isEmpty()) {
+            series.setLabel(label);
+            this.map.put(label, series);
+        }
+
+        if (series.size() != this.getShape().rows() || this.map.containsKey(label)) {
+            return;
+        }
+
+        series.setLabel(label);
+        this.map.put(label, series);
+    }
+
+
+    /**
+     * Removes from current DataSet column with the given label and returns
+     * true if the given label exists, otherwise returns false.
+     * */
+    public boolean dropColumn(String label) {
+
+        if (!this.map.containsKey(label)) {
+            return false;
+        }
+
+        this.map.remove(label);
+        return true;
     }
 
 
@@ -161,7 +200,7 @@ public class DataSet {
                 for (int i = 0; i < lineData.length; i++) {
                     String title = lineData[i];
                     if (filterColumns.contains(title)) {
-                        map.put(title, new DataSeries());
+                        map.put(title, new DataSeries(title));
                         validIndices.add(i);
                     }
                 }
@@ -233,7 +272,7 @@ public class DataSet {
             if (lineCounter == 0) {
                 allLabels = lineData;
                 for (String title : lineData) {
-                    map.put(title, new DataSeries());
+                    map.put(title, new DataSeries(title));
                 }
             }
             else if (lineCounter == 1) {
@@ -261,4 +300,63 @@ public class DataSet {
     }
 
 
+    /**
+     * Returns new DataSet that contains every column of the current DataSet
+     * that consists of numerical values.
+     * */
+    public DataSet numerical() {
+
+        DataSet newDs = new DataSet();
+
+        for (String label: this.getLabels()) {
+            DataSeries series = this.getColumn(label);
+            if (series.isNumerical()) {
+                newDs.addColumn(label, series);
+            }
+        }
+
+        return newDs;
+    }
+
+
+    /**
+     * Returns new DataSet that contains every column of the current DataSet
+     * that consists of categorical values.
+     * */
+    public DataSet categorical() {
+
+        DataSet newDs = new DataSet();
+
+        for (String label: this.getLabels()) {
+            DataSeries series = this.getColumn(label);
+            if (series.isCategorical()) {
+                newDs.addColumn(label, series);
+            }
+        }
+
+        return newDs;
+    }
+
+    /**
+     * Returns matrix of correlation for each numerical column.*/
+    public double[][] corrMatrix() {
+
+        DataSet onlyNumerical = this.numerical();
+
+        int columns = onlyNumerical.getShape().columns();
+
+        double[][] matrix = new double[columns][columns];
+
+        String[] labels = onlyNumerical.getLabels().toArray(new String[0]);
+
+        for (int i = 0; i < columns; i++) {
+            for (int j = 0; j < columns; j++) {
+                DataSeries dataSeries_i = onlyNumerical.getColumn(labels[i]);
+                DataSeries dataSeries_j = onlyNumerical.getColumn(labels[j]);
+                matrix[i][j] = dataSeries_i.correlation(dataSeries_j);
+            }
+        }
+
+        return matrix;
+    }
 }

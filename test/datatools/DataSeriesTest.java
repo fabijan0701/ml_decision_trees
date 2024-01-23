@@ -1,12 +1,12 @@
 package datatools;
 
+import files.TestFiles;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class DataSeriesTest {
 
@@ -80,7 +80,7 @@ class DataSeriesTest {
     @Test
     void covarianceCorrelation() {
 
-        String PLAYERS_FILE = System.getProperty("user.dir") + "\\data\\top_players.csv";
+        String PLAYERS_FILE = TestFiles.PLAYERS_FILE;
 
         DataSet dataSet = new DataSet();
 
@@ -103,5 +103,90 @@ class DataSeriesTest {
         double corr = goals.correlation(values);
         System.out.println("Correlation: Goals - Value: " + corr);
 
+    }
+
+    @Test
+    void addColumnTest() {
+
+        // Columns
+        DataSeries colName = new DataSeries(new Object[] { "Anna", "Marco", "Simon" } );
+        DataSeries colAge = new DataSeries(new Object[] { 20, 20, 20 } );
+
+        // DataSet
+        DataSet ds = new DataSet();
+        ds.addColumn("Name", colName);
+        ds.addColumn("Age", colAge);
+
+        Assertions.assertEquals(ds.getShape(), new DataShape(3, 2));
+    }
+
+    @Test
+    void categoricalNumerical() {
+
+        // Test data.
+        DataSeries dsNum = new DataSeries( new Object[] { 12, 13, 14 });
+        DataSeries dsCat = new DataSeries( new Object[] { "Anna", "Marco" });
+
+        // Assertions
+        Assertions.assertAll(()-> {
+            Assertions.assertTrue(dsNum.isNumerical());
+            Assertions.assertTrue(dsCat.isCategorical());
+        });
+    }
+
+    @Test
+    void extractNumerical() throws IOException {
+
+        // Getting data.
+        DataSet dataSet = new DataSet();
+        dataSet.fromCSV(TestFiles.PLAYERS_FILE, ";");
+
+        int expectedNumValues = 11;
+        Assertions.assertEquals(expectedNumValues, dataSet.numerical().getShape().columns());
+    }
+
+    @Test
+    void uniqueValues() {
+
+        // Actual
+        DataSeries dataSeries = new DataSeries(new Object[]{ 21, 22, 22, 21, 21, 22} );
+
+        // Expected
+        DataSeries expected = new DataSeries(new Object[]{ 21, 22 });
+
+        // Asserts
+        Assertions.assertEquals(expected, dataSeries.unique());
+    }
+
+    @Test
+    void codingValues() {
+
+        DataSeries ds = new DataSeries(new Object[]{ "Jure", "Mate", "Šime", "Mate", "Jure" });
+        DataSeries expected = new DataSeries(new Object[]{ 1, 2, 3, 2, 1 });
+
+        HashMap<Object, Object> coding = new HashMap<>();
+        coding.put("Jure", 1);
+        coding.put("Mate", 2);
+        coding.put("Šime", 3);
+        ds.codeValues(coding);
+
+        Assertions.assertEquals(expected, ds);
+    }
+
+    @Test
+    void corrMatrix() throws IOException {
+
+        // Getting data.
+        DataSet dataSet = new DataSet();
+        dataSet.fromCSV(TestFiles.PLAYERS_FILE, ";");
+
+        // Executing method.
+        double[][] corrMatrix = dataSet.corrMatrix();
+
+        // Expected values.
+        int expectedLength = dataSet.numerical().getShape().columns();
+
+        // Assertion.
+        Assertions.assertEquals(corrMatrix.length, expectedLength);
     }
 }
