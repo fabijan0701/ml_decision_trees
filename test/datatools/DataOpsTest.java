@@ -1,7 +1,12 @@
 package datatools;
 
+import files.TestFiles;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,5 +44,24 @@ class DataOpsTest {
             Assertions.assertEquals(DataOps.resolveType("20.2"), double.class);
             Assertions.assertEquals(DataOps.resolveType("true"), boolean.class);
         });
+    }
+
+    @Test
+    void printMatrix() throws IOException {
+
+        // Filtrianje potrebnih podataka.
+        Set<String> filters = new HashSet<>();
+        filters.add("Position");
+        filters.add("Country");
+        filters.add("Goals");
+        filters.add("Assists");
+        filters.add("Market value");
+
+
+        // Učitavanje podataka.
+        DataSet data = new DataSet();
+        data.fromCSV(TestFiles.PLAYERS_FILE, ";", filters);
+
+        System.out.println(DataOps.corrMatrixToStr(data));
     }
 }

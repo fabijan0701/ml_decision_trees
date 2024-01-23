@@ -1,13 +1,49 @@
 package datatools;
 
+import com.sun.jdi.Value;
+
 import java.util.*;
 
 public class DataSeries extends ArrayList<Object> implements DescriptiveStatistics {
 
-    public DataSeries() {};
+    private String label;
+
+    public DataSeries() {
+        this.label = "";
+    }
+
+    public DataSeries(String label) {
+        this.label = "";
+    };
 
     public DataSeries(Object[] array) {
         this.addAll(List.of(array));
+        this.label = "";
+    }
+
+    public DataSeries(String label, Object[] array) {
+        this.label = label;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof DataSeries) {
+            for (Object element : this) {
+                if (!((DataSeries) o).contains(element)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public String getLabel() {
+        return this.label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     @Override
@@ -205,5 +241,16 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     @Override
     public double correlation(DataSeries other) {
         return this.covariance(other) / (this.standardDeviation() * other.standardDeviation());
+    }
+
+    public void codeValues(HashMap<Object, Object> map) {
+
+        /*for (int i = 0; i < this.size(); i++) {
+            Object data = this.get(i);
+            double mapValue = map.get(data);
+            this.set(i, mapValue);
+        }*/
+
+        this.replaceAll(map::get);
     }
 }

@@ -1,5 +1,8 @@
 package datatools;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 /**
  * Klasa sa statičkim metodama koje služe za rukovanje tipovima podataka
  * */
@@ -41,7 +44,7 @@ public class DataOps {
     /**
      * Provjerava može li se literal tipa 'String' parsirati u int.
      * */
-    private static boolean isInt(String s) {
+    public static boolean isInt(String s) {
         try {
             Integer.parseInt(s);
             return true;
@@ -54,12 +57,55 @@ public class DataOps {
     /**
      * Provjerava može li se literal tipa 'String' parsirati u double.
      * */
-    private static boolean isDouble(String s) {
+    public static boolean isDouble(String s) {
         try {
             Double.parseDouble(s);
             return true;
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+
+    public static String corrMatrixToStr(DataSet ds) {
+
+        StringBuilder txt = new StringBuilder();
+        double[][] matrix = ds.corrMatrix();
+        String[] labels = ds.numerical().getLabels().toArray(new String[0]);
+
+        // Longest label.
+        int lenLongest = 0;
+        for (String lbl: labels) {
+            if (lbl.length() > lenLongest) {
+                lenLongest = lbl.length();
+            }
+        }
+        lenLongest += 5;
+
+        // Defining space.
+        String space = String.format("%" + lenLongest + "s", "");
+
+        // First row - columns
+        for (String lbl: labels) {
+            txt.append(space).append(lbl);
+        }
+        txt.append("\n");
+
+        for (int i = 0; i < matrix.length; i++) {
+            int diff = lenLongest - labels[i].length();
+            txt.append(labels[i]).append(String.format("%" + diff + "s", ""));
+            for (int j = 0; j < matrix.length; j++) {
+                String strVal = String.format("%-15.2f", matrix[i][j]);
+                if (matrix[i][j] >= 0) {
+                    strVal = " " + strVal;
+                }
+                diff = labels[j].length() - strVal.length();
+                txt.append(strVal).append(String.format("%" + (diff + lenLongest) + "s", ""));
+            }
+            txt.append("\n");
+        }
+
+
+        return txt.toString();
     }
 }
