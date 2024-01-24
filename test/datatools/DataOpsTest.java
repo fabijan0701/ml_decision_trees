@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class DataOpsTest {
 
     @Test
@@ -79,5 +77,28 @@ class DataOpsTest {
         data.getColumn("Country").codeValues(countryMapping);
 
         System.out.println(DataOps.corrMatrixToStr(data));
+    }
+
+    @Test
+    void trainTestSplit() {
+
+        DataSet dataSet = new DataSet();
+
+        dataSet.addColumn("a", new DataSeries(new Object[] { 1, 2, 3, 4, 5, 6, 7, 8, 8, 10 }));
+        dataSet.addColumn("b", new DataSeries(new Object[] { 1, 2, 3, 4, 5, 6, 7, 8, 8, 10 }));
+        dataSet.addColumn("c", new DataSeries(new Object[] { 1, 2, 3, 4, 5, 6, 7, 8, 8, 10 }));
+        dataSet.addColumn("d", new DataSeries(new Object[] { 1, 2, 3, 4, 5, 6, 7, 8, 8, 10 }));
+
+        for (int i = 0; i < dataSet.getShape().rows(); i++) {
+
+            double testSize = (double)i / dataSet.getShape().rows();
+
+            DataSet[] trainTest = DataOps.splitData(dataSet, testSize, 2);
+            DataSet train = trainTest[0];
+            DataSet test = trainTest[1];
+
+            int totalData = train.getShape().rows() + test.getShape().rows();
+            Assertions.assertEquals(dataSet.getShape().rows(), totalData);
+        }
     }
 }

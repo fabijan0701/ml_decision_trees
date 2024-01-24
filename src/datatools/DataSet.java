@@ -48,6 +48,14 @@ public class DataSet {
         dataTypes = new HashMap<>();
     }
 
+    public DataSet(Set<String> labels) {
+        map = new HashMap<>();
+        for (String label: labels) {
+            map.put(label, new DataSeries());
+        }
+        dataTypes = new HashMap<>();
+    }
+
 
     /**
      * Dohvaća sve oznake koje se nalaze u DataSet-u. Dohvaćene oznake se
@@ -174,6 +182,9 @@ public class DataSet {
      * @throws IOException ukoliko dođe do problema prilikom učitavanja datoteke.*/
     public void fromCSV(String filePath, String separator, Set<String> filterColumns) throws IOException {
 
+        // Praznimo postojeće podatke.
+        this.map.clear();
+
         // Objekt koji čita datoteku.
         BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), StandardCharsets.UTF_8);
 
@@ -251,6 +262,9 @@ public class DataSet {
      * @param separator 'simbol' koji razdvaja podatke u datoteci, preferira se da bude ',' ili ';'.
      * @throws IOException ukoliko dođe do problema prilikom učitavanja datoteke.*/
     public void fromCSV(String filePath, String separator) throws IOException {
+
+        // Praznimo postojeće podatke.
+        this.map.clear();
 
         // Objekt koji čita datoteku.
         BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), StandardCharsets.UTF_8);
