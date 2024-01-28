@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,20 +58,19 @@ class DataSetTest {
     void dsFromCSV_players() {
         DataSet dataSet = new DataSet();
 
-        HashSet<String> filter = new HashSet<>();
+        /*HashSet<String> filter = new HashSet<>();
         filter.add("Name");
         filter.add("Country");
         filter.add("Assists");
         filter.add("Goals");
-        filter.add("Markey Value In Millions(£)");
+        filter.add("Markey Value In Millions(£)");*/
 
         try {
-            dataSet.fromCSV(TestFiles.PLAYERS_FILE, ";", filter);
+            dataSet.fromCSV(TestFiles.PLAYERS_FILE, ";"/*, filter*/);
         } catch (IOException e) {
             Assertions.fail(e.getMessage());
         }
 
-        System.out.println(dataSet.getLabels());
-        System.out.println(dataSet.getShape());
     }
+
 }

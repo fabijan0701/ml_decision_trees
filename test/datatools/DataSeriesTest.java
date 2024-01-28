@@ -135,6 +135,20 @@ class DataSeriesTest {
     }
 
     @Test
+    void where() {
+
+        // Actual.
+        DataSeries series = new DataSeries(new Object[] { "Jure" , "Mate", "Jure", "Ana"});
+        Integer[] result = series.indicesWhere(x -> x == "Jure");
+
+        // Expected.
+        Integer[] indices = { 0, 2 };
+
+        // Assertions.
+        Assertions.assertArrayEquals(indices, result);
+    }
+
+    @Test
     void extractNumerical() throws IOException {
 
         // Getting data.
@@ -171,6 +185,24 @@ class DataSeriesTest {
         ds.codeValues(coding);
 
         Assertions.assertEquals(expected, ds);
+    }
+
+    @Test
+    void sorted() {
+
+        DataSeries ds = new DataSeries(new Object[] { 4, 2, 3, 1 });
+        DataSeries dsSorted = new DataSeries(new Object[] { 1, 2, 3, 4 });
+        Assertions.assertEquals(ds.sorted(), dsSorted);
+    }
+
+    @Test
+    void getAll() {
+        DataSeries x = new DataSeries(new Object[] { 1, 1, 0, 1, 0, 0, 0, 0, 1 });
+        Integer[] indices = { 2, 3, 4 };
+
+        DataSeries filtered = x.getAll(indices);
+
+        System.out.println(filtered);
     }
 
     @Test

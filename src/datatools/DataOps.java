@@ -1,7 +1,6 @@
 package datatools;
 
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 
 /**
  * Klasa sa statičkim metodama koje služe za rukovanje tipovima podataka
@@ -17,6 +16,9 @@ public class DataOps {
         if (dtype == int.class) {
             return Integer.valueOf(data);
         } else if (dtype == double.class) {
+            if (data.contains(",")) {
+                data = data.replace(",", ".");
+            }
             return Double.valueOf(data);
         } else if (dtype == boolean.class) {
             return Boolean.parseBoolean(data);
@@ -58,6 +60,7 @@ public class DataOps {
      * Provjerava može li se literal tipa 'String' parsirati u double.
      * */
     public static boolean isDouble(String s) {
+        s = s.replace(',', '.');
         try {
             Double.parseDouble(s);
             return true;
@@ -107,5 +110,112 @@ public class DataOps {
 
 
         return txt.toString();
+    }
+
+
+    /**
+     * Služi za podjelu podataka u skupove za treniranje i testiranje.
+     * @param dataSet predstavlja skup podataka koji dijelimo.
+     * @param testDataPrecentage udio skupa za testiranje u podacima.
+     * @param randomSeed sjeme za nasumični broj, kako bi se uvijek dobivali isti rezultati.
+     * */
+    public static DataSet[] splitData(DataSet dataSet, double testDataPrecentage, int randomSeed) {
+
+        String[] labels = dataSet.getLabels().toArray(new String[0]);
+
+        DataSet train = new DataSet(dataSet.getLabels());
+        DataSet test = new DataSet(dataSet.getLabels());
+
+        List<Integer> indices = new ArrayList<>();
+        for(int i = 0; i < dataSet.getShape().rows(); i++) indices.add(i);
+
+        Random random = new Random(randomSeed);
+
+        double done = 1 - ((double)indices.size() / dataSet.getShape().rows());
+        while (done < testDataPrecentage) {
+
+            int index = indices.get(random.nextInt(0, indices.size()));
+            DataSeries series = dataSet.getRow(index);
+            indices.remove((Integer) index);
+
+            for (int i = 0; i < labels.length; i++) {
+                String label = labels[i];
+                Object value = series.get(i);
+                test.getColumn(label).add(value);
+            }
+
+            done = 1 - ((double)indices.size() / dataSet.getShape().rows());
+        }
+
+        for (int index = 0; index < dataSet.getShape().rows(); index++) {
+
+            if (indices.contains(index)) {
+
+                DataSeries series = dataSet.getRow(index);
+
+                for (int i = 0; i < labels.length; i++) {
+                    String label = labels[i];
+                    Object value = series.get(i);
+                    train.getColumn(label).add(value);
+                }
+            }
+        }
+
+        return new DataSet[] { train, test };
+    }
+
+    /**
+     * Služi za podjelu podataka u skupove za treniranje i testiranje.
+     * @param dataSet predstavlja skup podataka koji dijelimo.
+     * @param testDataPrecentage udio skupa za testiranje u podacima.
+     * */
+    public static DataSet[] splitData(DataSet dataSet, double testDataPrecentage) {
+
+        String[] labels = dataSet.getLabels().toArray(new String[0]);
+
+        DataSet train = new DataSet(dataSet.getLabels());
+        DataSet test = new DataSet(dataSet.getLabels());
+
+        List<Integer> indices = new ArrayList<>();
+        for(int i = 0; i < dataSet.getShape().rows(); i++) indices.add(i);
+
+        Random random = new Random();
+
+        double done = 1 - ((double)indices.size() / dataSet.getShape().rows());
+        while (done < testDataPrecentage) {
+
+            int index = indices.get(random.nextInt(0, indices.size()));
+            DataSeries series = dataSet.getRow(index);
+            indices.remove((Integer) index);
+
+            for (int i = 0; i < labels.length; i++) {
+                String label = labels[i];
+                Object value = series.get(i);
+                test.getColumn(label).add(value);
+            }
+
+            done = 1 - ((double)indices.size() / dataSet.getShape().rows());
+        }
+
+        for (int index = 0; index < dataSet.getShape().rows(); index++) {
+
+            if (indices.contains(index)) {
+
+                DataSeries series = dataSet.getRow(index);
+
+                for (int i = 0; i < labels.length; i++) {
+                    String label = labels[i];
+                    Object value = series.get(i);
+                    train.getColumn(label).add(value);
+                }
+            }
+        }
+
+        return new DataSet[] { train, test };
+    }
+
+
+    public static Double toDouble(Object value) {
+        return ((Number) value).doubleValue();
     }
 }
