@@ -8,144 +8,157 @@ import java.util.*;
 public final class DecisionTreeClassifier extends DecisionTree{
 
     /**
-     * Predstavlja uređene parove pri računanju najoptimalnijeg
-     * gini indeksa. Pamti podatke o pragu na kojemu je pronađen
-     * svaki gini indeks, oznaci podatka (label) i sam gini indeks
-     * najboljeg praga.
+     * Konstruktor koji prima podatke koji prikazuju maksimalnu moguću
+     * dubinu stabla (maxDepth) i minimalnu količinu podataka koji se mogu
+     * nalaziti u rastavljenom čvoru (minSamplesSplit).
      * */
-    private record GiniData(
-            String label,
-            double treshold,
-            double gini,
-            DataSeries leftData,
-            DataSeries rightData
-    ) {}
-
-
     public DecisionTreeClassifier(int maxDepth, int minSamplesSplit) {
         super(maxDepth, minSamplesSplit);
     }
 
+
     /**
-     * Metoda koja služi za računanje Gini indeksa na nekom
-     * skupu podataka. */
-    public static double gini(DataSeries dataSeries) {
+     * Računa dubinu stabla pomoću pretrage po širini (eng. Bredth First Search).
+     * */
+    public int depth() {
 
-        double gini = 1;
-
-        for (Integer f: dataSeries.frequencies().values()) {
-            double localP = (double)f / dataSeries.count();
-            gini -= Math.pow(localP, 2);
+        if (this.getRoot() == null) {
+            return 0; // Tree is empty
         }
 
-        return gini;
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(this.getRoot());
+        int depth = 0;
+
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+
+            // Process nodes at the current level
+            for (int i = 0; i < levelSize; i++) {
+                TreeNode currentNode = queue.poll();
+
+                // Add children to the queue
+                if (currentNode.getLeft() != null) {
+                    queue.offer(currentNode.getRight());
+                }
+                if (currentNode.getLeft() != null) {
+                    queue.offer(currentNode.getRight());
+                }
+            }
+
+            depth++; // Move to the next level
+        }
+
+        return depth;
     }
 
-    /**
-     * Metoda koja vraća polje pragova koji služe za podjelu
-     * podatka u lijevi i desni skup. Zadani podaci se promatraju
-     * u sortiranom poretku. Zatim se za svaka dva jedinstvena
-     * elementa računa njihova prosječna vrijednost i sprema
-     * kao prag.*/
-    static double[] findTresholds(DataSeries dataSeries) {
+    @Override
+    public void fit(DataSet xTrain, DataSeries yTrain) {
 
-        // Sortirani niz.
-        Object[] arr = dataSeries.toArray();
-        Arrays.sort(arr);
+        // 'Granica' koja prati dodavanje čvorova.
+        Stack<TreeNode> nodeStack = new Stack<>();
 
-        // Podaci koje će metoda vratiti.
-        ArrayList<Double> tresholds = new ArrayList<>();
+        // Izračun optimalnog gini indeksa za korijen.
+        Gini gdRoot = Gini.minimized(xTrain, yTrain);
 
-        // Izračun srednjih vrijednosti.
-        for (int i = 0; i < arr.length - 1; i++) {
-            double data = Double.parseDouble(arr[i].toString());
-            double next = Double.parseDouble(arr[i + 1].toString());
-            double treshold = (data + next) / 2;
-            if (!tresholds.contains(treshold)) {
-                tresholds.add(treshold);
+        // Postavljanje korijena stabla (prvog čvora odluke).
+        this.setRoot(new TreeNode(gdRoot.feature(), xTrain, yTrain, gdRoot.treshold(), gdRoot.coefficient()));
+
+        // Dodajemo korijen u granicu.
+        nodeStack.push(this.getRoot());
+
+        // Dodavanje se odvija sve dok nešto postoji unutar granice.
+        while (!nodeStack.isEmpty()) {
+
+            // Dohvaćanje čvora iz granice.
+            TreeNode tempNode = nodeStack.pop();
+
+            // Dohvaćanje broja podataka.
+            int currentSamples = tempNode.y.count();
+
+            // Trenutna dubina stabla
+            int currentDepth = this.depth();
+
+            // Ako vrijede uvjeti razdvajanja...
+            if (currentSamples >= this.minSamplesSplit && currentDepth <= this.maxDepth) {
+
+                // Dijelimo podatke trenutnog čvora na dva dijela.
+                DataSplit dataSplit = DataSplit.makeSplit(tempNode.X, tempNode.y, tempNode.treshold, tempNode.featureName);
+
+                // Računamo gini podatke za oba dijela.
+                Gini giniLeft = Gini.minimized(dataSplit.xLeft(), dataSplit.yLeft());
+                Gini giniRight = Gini.minimized(dataSplit.xRight(), dataSplit.yRight());
+
+                // Stvaramo čvorove (lijevi i desni).
+                TreeNode leftNode = new TreeNode(giniLeft.feature(), dataSplit.xLeft(), dataSplit.yLeft(), giniLeft.treshold(), giniLeft.coefficient());
+                TreeNode rightNode = new TreeNode(giniRight.feature(), dataSplit.xRight(), dataSplit.yRight(), giniRight.treshold(), giniRight.coefficient());
+
+                // Dodajemo ih trenutnom.
+                tempNode.setLeft(leftNode);
+                tempNode.setRight(rightNode);
+
+                // Dodajemo ih u granicu kako bi se postupak mogao nastaviti.
+                nodeStack.push(leftNode);
+                nodeStack.push(rightNode);
             }
         }
-
-        double[] result = new double[tresholds.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = tresholds.get(i);
-        }
-        return result;
     }
 
-    /**
-     * Rastavlja podatke u dva skupa prema zadanom pragu.
-     * */
-    private static DataSeries[] splitData(DataSeries series, double treshold) {
 
-        DataSeries left = new DataSeries();
-        DataSeries right = new DataSeries();
+    @Override
+    public double predict(DataSeries x, String[] labels) {
 
-        for (Object data: series) {
-            if (Double.parseDouble(data.toString()) <= treshold) {
-                left.add(data);
+        TreeNode temp = this.getRoot();
+
+        double data;
+
+        while (!temp.isLeaf()) {
+
+            int featureIndex = List.of(labels).indexOf(temp.featureName);
+            data = Double.parseDouble(x.get(featureIndex).toString());
+
+            if (data <= temp.treshold) {
+                temp = temp.getLeft();
             }
             else {
-                right.add(data);
+                temp = temp.getRight();
             }
         }
 
-        return new DataSeries[] { left, right };
-    }
-
-
-    public static GiniData optimalGini(DataSet dataSet) {
-
-        // Tu ćemo spremati sve podatke.
-        HashMap<Double, GiniData> map = new HashMap<>();
-
-        // Pretražujemo sve značajke (features).
-        for (String dataLabel: dataSet.getLabels()) {
-
-            // Dohvaćamo svaki stupac (feature) DataSet-a.
-            DataSeries column = dataSet.getColumn(dataLabel);
-
-            // Računamo pragove za stupac.
-            double[] tresholds = findTresholds(column);
-
-            // Tražimo najmanji gini za svaki stupac.
-            for (double treshold: tresholds) {
-
-                // Dijelimo podatke u lijevi i desni skup.
-                DataSeries[] dataSplit = splitData(column, treshold);
-                DataSeries left = dataSplit[0];
-                DataSeries right = dataSplit[1];
-
-                // Računamo udio svakog dijela.
-                int nl = left.count() / column.count();
-                int nr = right.count() / column.count();
-
-                // Računamo gini.
-                double gini = (double) nl * gini(left) + (double) nr * gini(right);
-
-                // Spremamo podatke.
-                map.put(gini, new GiniData(dataLabel, treshold, gini, left, right));
-            }
-        }
-
-        // Traženje minimuma.
-        double minGini = Collections.min(map.keySet());
-
-        // Vraćamo podatak sa najmanjim gini indeksom.
-        return map.get(minGini);
-    }
-
-    /**
-     * Metoda koja služi za treniranje klasifikacijskog modela
-     * stabla odluke. Trenira se rekurzivno.*/
-    @Override
-    public void fit(DataSet xTrain, DataSet yTrain) {
-
+        return temp.y.mode();
     }
 
 
     @Override
-    public void predict(DataSeries x) {
+    public DataSeries predict(DataSet X) {
 
+        String[] features = X.getLabels().toArray(new String[0]);
+        DataSeries y = new DataSeries();
+
+        for (int i = 0; i < X.getShape().rows(); i++) {
+            DataSeries row = X.getRow(i);
+            double predValue = this.predict(row, features);
+            y.add(predValue);
+        }
+
+        return y;
+    }
+
+
+    void bfs() {
+
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(this.getRoot());
+
+        while (!queue.isEmpty()) {
+
+            TreeNode tmp = queue.poll();
+
+            System.out.println(tmp);
+            System.out.println();
+
+            if (tmp.getLeft() != null) queue.offer(tmp.getLeft());
+            if (tmp.getRight() != null) queue.offer(tmp.getRight());
+        }
     }
 }

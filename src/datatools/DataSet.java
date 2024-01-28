@@ -1,13 +1,12 @@
 package datatools;
 
-import com.sun.jdi.Value;
-
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Reprezentira DataSet, strukturu sličnu DataFrame bibilioteke Pandas (programskog
@@ -87,7 +86,9 @@ public class DataSet {
      * tipa 'ArrayList<>'.
      **/
     public DataSeries getColumn(String label) {
-        return this.map.get(label);
+        DataSeries series = this.map.get(label);
+        series.setLabel(label);
+        return series;
     }
 
 
@@ -112,19 +113,17 @@ public class DataSet {
         this.map.put(label, series);
     }
 
-
     /**
      * Removes from current DataSet column with the given label and returns
      * true if the given label exists, otherwise returns false.
-     * */
-    public boolean dropColumn(String label) {
+     */
+    public void dropColumn(String label) {
 
         if (!this.map.containsKey(label)) {
-            return false;
+            return;
         }
 
         this.map.remove(label);
-        return true;
     }
 
 
@@ -143,25 +142,6 @@ public class DataSet {
         }
 
         return row;
-    }
-
-
-    /**
-     * Vraća novi DataSet koji uključuje prvih n redaka originalnog DataSet-a.
-     * @param n predstavlja broj redaka u novom DataSet-u.
-     * */
-    public DataSet head(int n) {
-
-        DataSet data = new DataSet();
-        data.dataTypes = this.dataTypes;
-
-        for (String label: map.keySet()) {
-            data.map.put(label, new DataSeries());
-            DataSeries column = this.map.get(label);
-            System.out.println(label + "  " + column.size());
-        }
-
-        return  data;
     }
 
 
@@ -205,6 +185,7 @@ public class DataSet {
 
             // Podijelimo liniju u niz prema znaku koji razdvaja podatke
             String[] lineData = line.split(separator);
+
 
             if (lineCounter == 0) {    // učitavamo samo oznake.
                 allLabels = lineData;
@@ -314,9 +295,9 @@ public class DataSet {
     }
 
 
+
     /**
-     * Returns new DataSet that contains every column of the current DataSet
-     * that consists of numerical values.
+     * Vraća novi DataSet, koji sadrži samo numeričke podatke originalnog DataSet-a.
      * */
     public DataSet numerical() {
 
@@ -332,10 +313,8 @@ public class DataSet {
         return newDs;
     }
 
-
     /**
-     * Returns new DataSet that contains every column of the current DataSet
-     * that consists of categorical values.
+     *Vraća novi DataSet, koji sadrži samo kategoričke podatke originalnog DataSet-a..
      * */
     public DataSet categorical() {
 

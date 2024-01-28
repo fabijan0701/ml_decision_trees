@@ -16,6 +16,9 @@ public class DataOps {
         if (dtype == int.class) {
             return Integer.valueOf(data);
         } else if (dtype == double.class) {
+            if (data.contains(",")) {
+                data = data.replace(",", ".");
+            }
             return Double.valueOf(data);
         } else if (dtype == boolean.class) {
             return Boolean.parseBoolean(data);
@@ -57,6 +60,7 @@ public class DataOps {
      * Provjerava može li se literal tipa 'String' parsirati u double.
      * */
     public static boolean isDouble(String s) {
+        s = s.replace(',', '.');
         try {
             Double.parseDouble(s);
             return true;
@@ -210,4 +214,8 @@ public class DataOps {
         return new DataSet[] { train, test };
     }
 
+
+    public static Double toDouble(Object value) {
+        return ((Number) value).doubleValue();
+    }
 }

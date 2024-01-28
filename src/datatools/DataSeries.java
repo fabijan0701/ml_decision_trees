@@ -1,8 +1,7 @@
 package datatools;
 
-import com.sun.jdi.Value;
-
 import java.util.*;
+import java.util.function.Predicate;
 
 public class DataSeries extends ArrayList<Object> implements DescriptiveStatistics {
 
@@ -17,7 +16,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     };
 
     public DataSeries(Object[] array) {
-        this.addAll(List.of(array));
+        this.addAll(Arrays.asList(array));
         this.label = "";
     }
 
@@ -72,7 +71,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
         double s = 0;
 
         for (Object element: this) {
-            s += Double.parseDouble(element.toString());
+            s += DataOps.toDouble(element);
         }
 
         return s;
@@ -86,7 +85,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     @Override
     public double median() {
         ArrayList<Double> doubles = new ArrayList<>();
-        for (Object element: this) doubles.add(Double.parseDouble(element.toString()));
+        for (Object element: this) doubles.add(DataOps.toDouble(element));
         Collections.sort(doubles);
         if (doubles.size() % 2 != 0) {
             return doubles.get(doubles.size() / 2);
@@ -116,7 +115,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     public double min()  {
         double minVal = Double.MAX_VALUE;
         for (Object elem : this) {
-            double d = Double.parseDouble(elem.toString());
+            double d = DataOps.toDouble(elem);
             if (d < minVal) {
                 minVal = d;
             }
@@ -128,7 +127,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     public double max() {
         double maxValue = Double.MIN_VALUE;
         for (Object elem : this) {
-            double d = Double.parseDouble(elem.toString());
+            double d = DataOps.toDouble(elem);
             if (d > maxValue) {
                 maxValue = d;
             }
@@ -158,7 +157,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     @Override
     public double firstQuartile() throws ArithmeticException {
         ArrayList<Double> doubles = new ArrayList<>();
-        for (Object element: this) doubles.add(Double.parseDouble(element.toString()));
+        for (Object element: this) doubles.add(DataOps.toDouble(element));
         Collections.sort(doubles);
         if (doubles.size() % 2 == 0) {
             int index1 = doubles.size() / 4;
@@ -174,7 +173,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     @Override
     public double thirdQuartile() throws ArithmeticException {
         ArrayList<Double> doubles = new ArrayList<>();
-        for (Object element: this) doubles.add(Double.parseDouble(element.toString()));
+        for (Object element: this) doubles.add(DataOps.toDouble(element));
         Collections.sort(doubles);
         if (doubles.size() % 2 == 0) {
             int index1 = doubles.size() * 3 / 4;
@@ -194,7 +193,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
         double m = this.mean();
 
         for (Object e: this) {
-            double val = Double.parseDouble(e.toString());
+            double val = DataOps.toDouble(e);
             sum += Math.pow(val - m  , 2);
         }
 
@@ -212,7 +211,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
         HashMap<Double, Integer> counter = new HashMap<>();
 
         for (Object element: this) {
-            Double d = Double.parseDouble(element.toString());
+            Double d = DataOps.toDouble(element);
             if (!counter.containsKey(d)) {
                 counter.put(d, 1);
             } else {
@@ -230,8 +229,8 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
         double m = this.mean();
 
         for (int i = 0; i < this.count(); i++) {
-            double v1 = Double.parseDouble(this.get(i).toString());
-            double v2 = Double.parseDouble(other.get(i).toString());
+            double v1 = DataOps.toDouble(this.get(i));
+            double v2 = DataOps.toDouble(other.get(i));
             sum += ((v1 - m) * (v2 - m));
         }
 
@@ -263,5 +262,55 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
             }
         }
         return unq;
+    }
+
+    public Integer[] indicesWhere(Predicate<Object> predicate) {
+
+        List<Integer> indices = new ArrayList<>();
+
+        for (int i = 0; i < this.count(); i++) {
+            if (predicate.test(this.get(i))) {
+                indices.add(i);
+            }
+        }
+
+        return indices.toArray(new Integer[0]);
+    }
+
+    public HashMap<Object, Object> autoCoding() {
+
+        int code = 0;
+        HashMap<Object, Object> map = new HashMap<>();
+        for (Object value: this.unique()) {
+            map.put(value, code);
+            code++;
+        }
+
+        return map;
+    }
+
+    public DataSeries getAll(Integer[] indices) {
+
+        DataSeries series = new DataSeries(this.label);
+
+        for (int index: indices) {
+            series.add(this.get(index));
+        }
+
+        return series;
+    }
+
+    private static double getValue(Object o) {
+        return DataOps.toDouble(o);
+    }
+
+    /**
+     * Returns collection sorted. Only works for the numeric values.
+     * */
+    public DataSeries sorted() {
+        DataSeries n = new DataSeries();
+        n.addAll(this);
+        n.sort(Comparator.comparingDouble(DataSeries::getValue));
+        return n;
     }
 }

@@ -19,6 +19,13 @@ public abstract class DecisionTree {
         return root;
     }
 
-    public abstract void fit(DataSet xTrain, DataSet yTrain);
-    public abstract void predict(DataSeries x);
+    public void setRoot(TreeNode root) {
+        this.root = root;
+    }
+
+    public abstract void fit(DataSet xTrain, DataSeries yTrain);
+
+    public abstract double predict(DataSeries x, String[] labels);
+
+    public abstract DataSeries predict(DataSet X);
 }
