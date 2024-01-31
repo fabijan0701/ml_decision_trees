@@ -12,7 +12,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
     }
 
     public DataSeries(String label) {
-        this.label = "";
+        this.label = label;
     };
 
     public DataSeries(Object[] array) {
@@ -22,6 +22,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
 
     public DataSeries(String label, Object[] array) {
         this.label = label;
+        this.addAll(Arrays.asList(array));
     }
 
     @Override
@@ -194,7 +195,7 @@ public class DataSeries extends ArrayList<Object> implements DescriptiveStatisti
 
         for (Object e: this) {
             double val = DataOps.toDouble(e);
-            sum += Math.pow(val - m  , 2);
+            sum += Math.pow(val - m, 2);
         }
 
         return sum / this.count();

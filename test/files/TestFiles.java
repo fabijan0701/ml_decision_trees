@@ -12,4 +12,6 @@ public class TestFiles {
     public static final String HEART_FILE = root + "\\data\\heart.csv";
 
     public static final String DIABETES_FILE = root + "\\data\\diabetes_pred.csv";
+
+    public static final String SALARY_FILE = root + "\\data\\Salary Data.csv";
 }

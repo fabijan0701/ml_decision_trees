@@ -23,7 +23,7 @@ class DecisionTreeClassifierTest
         DataSeries series = new DataSeries(new Object[] { 0, 1, 1, 1, 0, 0, 1, 0, 1, 1 } );
 
         // Actual gini index (from method).
-        double actual = Gini.calculate(series);
+        double actual = DecisionTreeClassifier.gini(series);
 
         // Expected (calculated) gini index.
         double expected = 0.48;
@@ -39,7 +39,7 @@ class DecisionTreeClassifierTest
         DataSeries series = new DataSeries(new Object[] { 1, 1, 1, 1 } );
 
         // Actual gini index (from method).
-        double actual = Gini.calculate(series);
+        double actual = DecisionTreeClassifier.gini(series);
 
         // Expected (calculated) gini index.
         double expected = 0;
@@ -59,11 +59,11 @@ class DecisionTreeClassifierTest
         DataSeries y = X.getColumn("kupiti");
         X.dropColumn("kupiti");
 
-        Gini data = Gini.minimized(X, y);
+        Minimizer data = new DecisionTreeClassifier(0, 0).minimized(X, y);
 
-        System.out.println("Minimum gini: " + data.coefficient());
-        System.out.println("Treshold: " + data.treshold());
-        System.out.println("Label: " + data.feature());
+        System.out.println("Minimum gini: " + data.index);
+        System.out.println("Treshold: " + data.treshold);
+        System.out.println("Label: " + data.feature);
     }
 
     @Test
@@ -97,11 +97,11 @@ class DecisionTreeClassifierTest
         DataSeries y = dataSet.getColumn(yLabel);
         dataSet.dropColumn(yLabel);
 
-        Gini data = Gini.minimized(dataSet, y);
+        Minimizer data = new DecisionTreeClassifier(0, 0).minimized(dataSet, y);
 
-        System.out.println("Minimum gini: " + data.coefficient());
-        System.out.println("Treshold: " + data.treshold());
-        System.out.println("Label: " + data.feature());
+        System.out.println("Minimum gini: " + data.index);
+        System.out.println("Treshold: " + data.treshold);
+        System.out.println("Label: " + data.feature);
 
     }
 
@@ -114,7 +114,7 @@ class DecisionTreeClassifierTest
         DataSeries y = dataSet.getColumn("Outcome");
         dataSet.dropColumn(y.getLabel());
 
-        System.out.println(Gini.minimized(dataSet, y));
+        System.out.println(new DecisionTreeClassifier(0, 0).minimized(dataSet, y));
     }
 
     @Test
@@ -178,7 +178,7 @@ class DecisionTreeClassifierTest
         String feature = "Outcome";
 
         // Nasumična podjela podataka.
-        DataSet[] dataSets = DataOps.splitData(dataSet, 0.2);
+        DataSet[] dataSets = DataOps.splitData(dataSet, 0.2, 3);
 
         // Skup za treniranje modela.
         DataSet XTrain = dataSets[0];
