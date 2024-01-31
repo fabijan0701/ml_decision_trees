@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 
@@ -23,7 +25,7 @@ class DecisionTreeClassifierTest
         DataSeries series = new DataSeries(new Object[] { 0, 1, 1, 1, 0, 0, 1, 0, 1, 1 } );
 
         // Actual gini index (from method).
-        double actual = Gini.calculate(series);
+        double actual = DecisionTreeClassifier.gini(series);
 
         // Expected (calculated) gini index.
         double expected = 0.48;
@@ -39,7 +41,7 @@ class DecisionTreeClassifierTest
         DataSeries series = new DataSeries(new Object[] { 1, 1, 1, 1 } );
 
         // Actual gini index (from method).
-        double actual = Gini.calculate(series);
+        double actual = DecisionTreeClassifier.gini(series);
 
         // Expected (calculated) gini index.
         double expected = 0;
@@ -59,11 +61,11 @@ class DecisionTreeClassifierTest
         DataSeries y = X.getColumn("kupiti");
         X.dropColumn("kupiti");
 
-        Gini data = Gini.minimized(X, y);
+        Minimizer data = new DecisionTreeClassifier(0, 0).minimized(X, y);
 
-        System.out.println("Minimum gini: " + data.coefficient());
-        System.out.println("Treshold: " + data.treshold());
-        System.out.println("Label: " + data.feature());
+        System.out.println("Minimum gini: " + data.index);
+        System.out.println("Treshold: " + data.treshold);
+        System.out.println("Label: " + data.feature);
     }
 
     @Test
@@ -97,11 +99,11 @@ class DecisionTreeClassifierTest
         DataSeries y = dataSet.getColumn(yLabel);
         dataSet.dropColumn(yLabel);
 
-        Gini data = Gini.minimized(dataSet, y);
+        Minimizer data = new DecisionTreeClassifier(0, 0).minimized(dataSet, y);
 
-        System.out.println("Minimum gini: " + data.coefficient());
-        System.out.println("Treshold: " + data.treshold());
-        System.out.println("Label: " + data.feature());
+        System.out.println("Minimum gini: " + data.index);
+        System.out.println("Treshold: " + data.treshold);
+        System.out.println("Label: " + data.feature);
 
     }
 
@@ -114,7 +116,7 @@ class DecisionTreeClassifierTest
         DataSeries y = dataSet.getColumn("Outcome");
         dataSet.dropColumn(y.getLabel());
 
-        System.out.println(Gini.minimized(dataSet, y));
+        System.out.println(new DecisionTreeClassifier(0, 0).minimized(dataSet, y));
     }
 
     @Test
@@ -178,19 +180,19 @@ class DecisionTreeClassifierTest
         String feature = "Outcome";
 
         // Nasumična podjela podataka.
-        DataSet[] dataSets = DataOps.splitData(dataSet, 0.2);
+        DataSet[] dataSets = DataOps.splitData(dataSet, 0.3, 3);
 
-        // Skup za treniranje modela.
+        // Skup primjera za treniranje modela.
         DataSet XTrain = dataSets[0];
 
-        // Skup y za nadzirano treniranje modela.
+        // Skup značajki za treniranje modela.
         DataSeries yTrain = XTrain.getColumn(feature);
         XTrain.dropColumn(feature);
 
         // Skup za testiranje modela.
         DataSet XTest = dataSets[1];
 
-        // Skup y za testiranje točnosti modela.
+        // Skup značajki za testiranje točnosti modela.
         DataSeries yTest = XTest.getColumn(feature);
         XTest.dropColumn(feature);
 
@@ -204,5 +206,61 @@ class DecisionTreeClassifierTest
         // Izračun točnosti.
         double acc = ModelMetrics.accuracy(yTest, predicted);
         System.out.println("Accuracy: " + acc);
+    }
+
+    @Test
+    void fitCSV2() throws IOException {
+
+        // Učitavanje DataSet-a.
+        DataSet dataSet = new DataSet();
+        dataSet.fromCSV(TestFiles.DIABETES_FILE, ";");
+
+        // Stupac koji predviđamo.
+        String feature = "Outcome";
+
+        // Nasumična podjela podataka.
+        DataSet[] dataSets = DataOps.splitData(dataSet, 0.3, 3);
+
+        // Skup primjera za treniranje modela.
+        DataSet XTrain = dataSets[0];
+
+        // Skup značajki za treniranje modela.
+        DataSeries yTrain = XTrain.getColumn(feature);
+        XTrain.dropColumn(feature);
+
+        // Skup za testiranje modela.
+        DataSet XTest = dataSets[1];
+
+        // Skup značajki za testiranje točnosti modela.
+        DataSeries yTest = XTest.getColumn(feature);
+        XTest.dropColumn(feature);
+
+
+        // Spremanje svih mogućih kombinacija.
+        HashMap<Double, Integer[]> combinations = new HashMap<>();
+
+        for (int maxDepth = 0; maxDepth < 10; maxDepth++) {
+            for (int minSamples = 2; minSamples < 10; minSamples++) {
+
+                // Stvaranje i treniranje modela.
+                DecisionTreeClassifier model = new DecisionTreeClassifier(maxDepth, minSamples);
+                model.fit(XTrain, yTrain);
+
+                // Predviđanje vrijednosti.
+                DataSeries predicted = model.predict(XTest);
+
+                // Rezultati validacije modela.
+                double accuracy = ModelMetrics.accuracy(yTest, predicted);
+
+                combinations.put(accuracy, new Integer[] { maxDepth, minSamples });
+            }
+        }
+
+        // Ispis svih parova.
+        for (Double acc: combinations.keySet()) {
+            System.out.println("acc: " + acc + " - " + Arrays.toString(combinations.get(acc)));
+        }
+
+
     }
 }

@@ -51,6 +51,30 @@ class DataSeriesTest {
     @Test
     void descriptive() {
 
+        // Podaci koji se spremaju u seriju.
+        Object[] obj = { "Anna", "Simon", "Theo" };
+
+        // Stvaranje serije podataka.
+        DataSeries testSeries = new DataSeries(obj);
+
+        // Odabir indeksa prema kriteriju.
+        Integer[] indices = testSeries.indicesWhere(x -> x.toString().length() == 5);
+
+        /*
+        * Stvaranje nove serije koja sadrži sve elemente iz
+        * originalne serije podataka koji se nalaze na
+        * odabranim indeksima.
+        * */
+        DataSeries filtered = testSeries.getAll(indices);
+
+
+
+        System.out.println(filtered);
+    }
+
+    @Test
+    void descriptive2() {
+
         // Test data.
         Object[] obj = { 21.2, 22.6, 21.9, 21, 21, 21.3 };
         // sorted -> 21, 21, 21.2, 21.3, 21.9, 22.6

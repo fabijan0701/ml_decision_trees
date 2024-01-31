@@ -55,22 +55,33 @@ class DataSetTest {
 
     @Test
     @DisplayName("Loading file '.csv' test.")
-    void dsFromCSV_players() {
+    void dsFromCSV_players() throws IOException {
+
+
+        // Stvaranje skupa podataka.
         DataSet dataSet = new DataSet();
 
-        /*HashSet<String> filter = new HashSet<>();
+        // Filteri za odabrane podatke.
+        HashSet<String> filter = new HashSet<>();
         filter.add("Name");
         filter.add("Country");
         filter.add("Assists");
         filter.add("Goals");
-        filter.add("Markey Value In Millions(£)");*/
+        filter.add("Market Value");
 
-        try {
-            dataSet.fromCSV(TestFiles.PLAYERS_FILE, ";"/*, filter*/);
-        } catch (IOException e) {
-            Assertions.fail(e.getMessage());
-        }
+        // Čitanje podataka iz datoteke.
+        dataSet.fromCSV(TestFiles.PLAYERS_FILE, ";", filter);
 
+        // Dohvaćanje vrijednosti.
+        int samples = dataSet.getShape().rows();
+        int features = dataSet.getShape().columns();
+
+        // Novi DataSet koji sadrži samo numeričke vrijednosti
+        // iz originalnog DataSet-a.
+        DataSet numericalOnly = dataSet.numerical();
+
+
+        int a = samples+features;
     }
 
 }

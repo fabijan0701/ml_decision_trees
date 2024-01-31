@@ -7,19 +7,18 @@ public class TreeNode {
 
     public final String featureName;
     public final double treshold;
-    public final double giniIndex;
+    public final double index;
     public final DataSet X;
     public final DataSeries y;
-
     private TreeNode left;
     private TreeNode right;
 
-    public TreeNode(String feature, DataSet X, DataSeries y, double treshold, double gini) {
+    public TreeNode(String feature, DataSet X, DataSeries y, double treshold, double index) {
         this.X = X;
         this.y = y;
         this.featureName = feature;
         this.treshold = treshold;
-        this.giniIndex = gini;
+        this.index = index;
         this.left = null;
         this.right = null;
     }
@@ -42,14 +41,5 @@ public class TreeNode {
 
     public boolean isLeaf() {
         return this.left == null && this.right == null;
-    }
-
-    @Override
-    public String toString() {
-
-        return "Feature: " + this.featureName +
-                " <= " + this.treshold + "\n" +
-                "Gini: " + this.giniIndex + "\n" +
-                "Samples: " + this.y.count();
     }
 }

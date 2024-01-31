@@ -3,31 +3,18 @@ package mlearning.tree;
 import datatools.DataOps;
 import datatools.DataSeries;
 
-public final class DecisionTreeClassifier extends DecisionTree{
+public class DecisionTreeRegressor extends DecisionTree{
 
     /**
      * Konstruktor koji prima podatke koji prikazuju maksimalnu moguću
      * dubinu stabla (maxDepth) i minimalnu količinu podataka koji se mogu
      * nalaziti u rastavljenom čvoru (minSamplesSplit).
-     * */
-    public DecisionTreeClassifier(int maxDepth, int minSamplesSplit) {
+     *
+     * @param maxDepth maksimalna dubina stabla.
+     * @param minSamplesSplit minimalni broj podataka koji se može rastaviti.
+     */
+    public DecisionTreeRegressor(int maxDepth, int minSamplesSplit) {
         super(maxDepth, minSamplesSplit);
-    }
-
-
-    /**
-     * Metoda koja služi za računanje Gini indeksa na nekom
-     * skupu podataka. */
-    public static double gini(DataSeries dataSeries) {
-
-        double gini = 1;
-
-        for (Integer f: dataSeries.frequencies().values()) {
-            double localP = (double)f / dataSeries.count();
-            gini -= Math.pow(localP, 2);
-        }
-
-        return gini;
     }
 
 
@@ -43,9 +30,10 @@ public final class DecisionTreeClassifier extends DecisionTree{
 
         double belowPart = (double) belowCount / total;
         double abovePart = 1 - belowPart;
-        double gini = belowPart * gini(below) + abovePart * gini(above);
 
-        return new Minimizer(series.getLabel(), treshold, gini);
+        double mse = belowPart * below.variance() + abovePart * above.variance();
+
+        return new Minimizer(series.getLabel(), treshold, mse);
     }
 
 
@@ -53,6 +41,6 @@ public final class DecisionTreeClassifier extends DecisionTree{
     public double predictOne(DataSeries x, String[] labels) {
 
         TreeNode leaf = this.findNode(x, labels);
-        return leaf.y.mode();
+        return leaf.y.mean();
     }
 }
