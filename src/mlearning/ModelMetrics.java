@@ -43,4 +43,8 @@ public class ModelMetrics {
         }
         return total / y.count();
     }
+
+    public static double rootMeanSquaredError(DataSeries y, DataSeries yPredicted) {
+        return Math.sqrt(meanAbsoluteError(y, yPredicted));
+    }
 }

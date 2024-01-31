@@ -8,6 +8,8 @@ import mlearning.ModelMetrics;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,36 +38,59 @@ class DecisionTreeRegressorTest {
 
         DecisionTreeRegressor reg = new DecisionTreeRegressor(8, 2);
         reg.fit(ds, salary);
-
-        reg.bfs();
     }
 
     @Test
     void test_players() throws IOException {
 
+        // Odabir podataka koji će biti učitani
         HashSet<String> filters = new HashSet<>();
-        filters.add("Age");
-        filters.add("Matches");
-        filters.add("Goals");
-        filters.add("Assists");
-        filters.add("Market Value");
+        filters.add("age");
+        filters.add("price");
+        filters.add("selections");
+        filters.add("league");
+        filters.add("goal_champ");
+        filters.add("assist_champ");
 
-        DataSet X = new DataSet();
-        X.fromCSV(TestFiles.PLAYERS_FILE, ";",filters);
+        // Učitavanje skupa podataka.
+        DataSet dataSet = new DataSet();
+        dataSet.fromCSV(TestFiles.FOOTBALL_FILE, ";", filters);
 
-        String feature = "Market Value";
-        DataSeries y = X.getColumn(feature);
-        X.dropColumn(feature);
+        // Kodiranje kategoričkih vrijednosti.
+        for (String label: dataSet.getLabels()) {
+            DataSeries column = dataSet.getColumn(label);
+            if (column.isCategorical()) {
+                column.codeValues(column.autoCoding());
+            }
+        }
 
-        DecisionTreeRegressor model = new DecisionTreeRegressor(4, 2);
-        model.fit(X, y);
+        // Atribut kojega predviđamo.
+        String feature = "price";
 
-        System.out.println(model.depth());
+        // Razdvajamo podatke u skupove za treniranje i testiranje.
+        DataSet[] setSplit = DataOps.splitData(dataSet, 0.3, 2);
 
+        // Skup za treniranje.
+        DataSet Xtrain = setSplit[0];
+        DataSeries yTrain = Xtrain.getColumn(feature);
+        Xtrain.dropColumn(feature);
 
-        DataSeries yPred = model.predict(X);
-        System.out.println("MAE: " + ModelMetrics.meanAbsoluteError(y, yPred));
-        System.out.println("MSE: " + ModelMetrics.meanSquaredError(y, yPred));
+        // Skup za testiranje.
+        DataSet Xtest = setSplit[1];
+        DataSeries yTest = Xtest.getColumn(feature);
+        Xtest.dropColumn(feature);
+
+        // Stvaranje i testiranje regresijskog modela.
+        DecisionTreeRegressor model = new DecisionTreeRegressor(5, 3);
+        model.fit(Xtrain, yTrain);
+
+        // Predviđene vrijednosti modela.
+        DataSeries yPred = model.predict(Xtest);
+
+        // Rezultati validacije modela.
+        System.out.println("MAE: " + ModelMetrics.meanAbsoluteError(yTest, yPred));
+        System.out.println("MSE: " + ModelMetrics.meanSquaredError(yTest, yPred));
+        System.out.println("RMSE: " + ModelMetrics.rootMeanSquaredError(yTest, yPred));
     }
 
 }

@@ -100,7 +100,7 @@ public abstract class DecisionTree {
 
 
     /**
-     * Traži optimalni (minimizirani) gini indeks u zadanom trenutku. */
+     * Traži optimalni (minimizirani) indeks u zadanom trenutku. */
     public Minimizer minimized(DataSet X, DataSeries y) {
 
         // Postavljamo minimum.
@@ -121,25 +121,29 @@ public abstract class DecisionTree {
                 // Računamo gini indeks trenutne podjele podataka
                 Minimizer d = this.valueOfSplit(column, y, treshold);
 
-                // Tražimo najmanji gini indeks u skupu podataka.
+                // Tražimo najmanji indeks u skupu podataka.
                 if (d.index < min.index) {
                     min = d;
                 }
             }
         }
 
-        // Vraćamo podatak sa najmanjim gini indeksom.
+        // Vraćamo podatak sa najmanjim indeksom.
         return min;
     }
 
 
     /**
-     * Pronalazi gini indeks za rastavljene podatke po zadanom
+     * Pronalazi indeks za rastavljene podatke po zadanom
      * pragu (eng. treshold). */
     public abstract Minimizer valueOfSplit(DataSeries series, DataSeries y, double treshold);
 
 
 
+    /**
+     * Metoda koja služi za nadzirano treniranje i izgradnju
+     * stabla odluke.
+     * */
     public void fit(DataSet xTrain, DataSeries yTrain) {
 
         // 'Granica' koja prati dodavanje čvorova.
@@ -214,23 +218,5 @@ public abstract class DecisionTree {
         }
 
         return y;
-    }
-
-
-    void bfs() {
-
-        Queue<TreeNode> queue = new LinkedList<>();
-        queue.offer(this.getRoot());
-
-        while (!queue.isEmpty()) {
-
-            TreeNode tmp = queue.poll();
-
-            System.out.println(tmp);
-            System.out.println();
-
-            if (tmp.getLeft() != null) queue.offer(tmp.getLeft());
-            if (tmp.getRight() != null) queue.offer(tmp.getRight());
-        }
     }
 }
