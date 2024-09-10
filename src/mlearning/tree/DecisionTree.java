@@ -87,7 +87,7 @@ public abstract class DecisionTree {
                 if (currentNode.getLeft() != null) {
                     queue.offer(currentNode.getRight());
                 }
-                if (currentNode.getLeft() != null) {
+                if (currentNode.getRight() != null) {
                     queue.offer(currentNode.getRight());
                 }
             }
